@@ -24,7 +24,10 @@ class Migration(migrations.Migration):
                 ),
                 ("name", models.CharField(max_length=255)),
                 ("description", models.TextField()),
-                ("geom", django.contrib.gis.db.models.fields.PointField(srid=4326)),
+                (
+                    "geom",
+                    django.contrib.gis.db.models.fields.PointField(srid=4326),
+                ),
             ],
         ),
     ]

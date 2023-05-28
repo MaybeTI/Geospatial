@@ -6,7 +6,11 @@ from places.models import Place
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import action
-from drf_spectacular.utils import extend_schema, OpenApiParameter
+from drf_spectacular.utils import (
+    extend_schema,
+    OpenApiParameter,
+    OpenApiExample,
+)
 from drf_spectacular.types import OpenApiTypes
 from rest_framework.request import Request
 
@@ -15,6 +19,25 @@ class PlaceViewSet(ModelViewSet):
     queryset = Place.objects.all()
     serializer_class = PlaceSerializer
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="geom",
+                type=OpenApiTypes.STR,
+                required=True,
+                description="Coordinates representing the location. "
+                            "Should be in the format 'latitude, longitude'. "
+                            "For example, '50.44969, 30.522939' represents Kyiv.",
+                examples=[
+                    OpenApiExample(
+                        value="50.44969, 30.522939",
+                        name="Kyiv Coordinates",
+                    )
+                ],
+            )
+        ],
+        description="Create a new place with the given coordinates.",
+    )
     def create(self, request: Request, *args, **kwargs) -> Response:
         coordinates = request.data.get("geom").split(", ")
         if coordinates:
@@ -51,7 +74,9 @@ class PlaceViewSet(ModelViewSet):
                     data = dict(request.data)
                     data["geom"] = point
 
-                    serializer = self.get_serializer(instance, data=data, partial=True)
+                    serializer = self.get_serializer(
+                        instance, data=data, partial=True
+                    )
                     serializer.is_valid(raise_exception=True)
                     self.perform_update(serializer)
                     return Response(serializer.data, status=status.HTTP_200_OK)
@@ -77,13 +102,13 @@ class PlaceViewSet(ModelViewSet):
                 name="lat",
                 type=OpenApiTypes.STR,
                 required=True,
-                description="Latitude of the point to search for the nearest place.",
+                description="Latitude of the point to search for the nearest place. Ex for Kyiv: 50.44969",
             ),
             OpenApiParameter(
                 name="lon",
                 type=OpenApiTypes.STR,
                 required=True,
-                description="Longitude of the point to search for the nearest place.",
+                description="Longitude of the point to search for the nearest place. Ex for Kyiv: 30.522939",
             ),
         ],
         description="Retrieve the nearest place to the specified coordinates.",
